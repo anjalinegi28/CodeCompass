@@ -1,104 +1,128 @@
-# CodeCompass
+<div align="center">
 
-Agentic RAG chatbot for codebases, with eval-gated CI/CD.
+<img src="static/logo-banner.svg" width="320" alt="CodeCompass logo" />
 
-CodeCompass answers questions about a codebase ("how does X work?"), citing the
-exact file and line the answer came from. Every pull request automatically
-gets its answer quality scored (faithfulness, context precision, context
-recall) using RAGAS. If the score drops below a threshold, the PR is blocked
-from merging — just like a normal failing test, except this test measures
-answer quality instead of code correctness.
+**Upload any codebase. Ask questions in plain English. Get cited answers — file and line number included.**
 
-## Why "folder upload" is a first-class feature here
+[![Live Demo](https://img.shields.io/badge/demo-live-brightgreen?style=for-the-badge)](https://codecompass-production-518f.up.railway.app)
+[![Python](https://img.shields.io/badge/python-3.10+-blue?style=for-the-badge&logo=python&logoColor=white)](https://www.python.org/)
+[![FastAPI](https://img.shields.io/badge/FastAPI-009688?style=for-the-badge&logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com/)
+[![License: MIT](https://img.shields.io/badge/license-MIT-lightgrey?style=for-the-badge)](LICENSE)
 
-Most AI chat UIs (ChatGPT, Claude.ai, etc.) only let you attach individual
-files, because a browser file picker can't easily upload an entire directory
-tree with structure preserved. CodeCompass sidesteps this entirely: it never
-relies on a chat window's uploader. Instead you point it at a folder on disk
-(or a zipped folder), and it does its own recursive directory walk — reading
-every file, preserving relative paths, and skipping binaries/junk — through:
+</div>
 
-- the CLI: `python cli.py ingest /path/to/your/project`
-- the API: `POST /ingest` with a `folder_path` on the server, OR a `.zip` file
-  upload that the server unpacks and walks itself
+---
 
-This means you give it a whole repo, not one file at a time.
+## What is this?
 
-## Project layout
+CodeCompass is a **Retrieval-Augmented Generation (RAG) system for codebases**. Upload a project, ask questions like *"How does the login flow work?"*, and get an answer grounded in the actual code — with the exact file and line it came from, so you can verify it yourself.
 
-```
-codecompass/
-├── app/
-│   ├── config.py            # settings, env vars, provider keys
-│   ├── ingestion/
-│   │   ├── loader.py        # recursive folder walker (accepts folder OR zip)
-│   │   ├── chunker.py       # splits files into overlapping text chunks
-│   │   └── embedder.py      # Sentence-Transformers embeddings
-│   ├── vectorstore/
-│   │   ├── chroma_store.py  # ChromaDB backend
-│   │   └── faiss_store.py   # FAISS backend (swappable)
-│   ├── rag/
-│   │   ├── providers.py     # switch between OpenAI / Gemini / Claude
-│   │   └── agent.py         # LangChain RAG chain, returns answer + citation
-│   ├── stale_docs/
-│   │   └── watcher.py       # LangGraph agent: flags docs stale vs new code
-│   ├── eval/
-│   │   ├── testset.json     # sample Q&A eval set
-│   │   └── ragas_eval.py    # scores faithfulness/precision/recall, exits non-zero on fail
-│   ├── mlflow_logging/
-│   │   └── logger.py        # logs every eval run's params + scores to MLflow
-│   └── api/
-│       └── main.py          # FastAPI app: /ingest /ask /eval /stale-docs
-├── cli.py                   # local command-line interface
-├── tests/                   # pytest unit tests
-├── .github/workflows/eval-gate.yml   # CI/CD: blocks merge if RAGAS scores dip
-├── Dockerfile
-├── docker-compose.yml        # app + chromadb + mlflow, one command
-├── requirements.txt
-└── .env.example
+## ✨ Features
+
+- 📁 Upload as a `.zip` or a folder
+- 🔍 Semantic search — finds code by meaning, not keyword matching
+- 📌 Every answer cites its exact source (file + line range)
+- 🤖 Multi-LLM: OpenAI, Google Gemini, or Anthropic Claude
+- 🔒 Isolated, auto-expiring sessions — one upload never touches another
+- ✅ Eval-gated CI/CD (RAGAS) + MLflow experiment tracking
+
+## 🗺️ How it works
+
+```mermaid
+flowchart LR
+    A["📁 Upload"] --> B["✂️ Chunk"]
+    B --> C["🧮 Embed"]
+    C --> D[("🗄️ Vector Store")]
+    E["❓ Question"] --> F["🔎 Retrieve"]
+    D --> F
+    F --> G["🤖 LLM"]
+    G --> H["✅ Answer + citation"]
 ```
 
-## Quick start
+Each file is chunked, embedded, and stored in a session-scoped vector collection. A question is embedded the same way, matched against the closest chunks, and sent to an LLM with that context — the response includes exactly which file/lines it drew from.
+
+## 🧠 Engineering highlights
+
+- **RAG pipeline** with code-aware chunking (configurable size/overlap)
+- **Multi-provider LLM abstraction** — one interface, three swappable backends
+- **Eval-driven development** — RAGAS scoring gates every change in CI/CD
+- **Experiment tracking** via MLflow
+- **Swappable vector store** — Chroma or FAISS behind one interface
+- **Non-blocking indexing** — heavy work runs in a thread pool so one large upload can't freeze the API for other users
+- **Multi-tenant isolation** — per-session collections with TTL-based auto-cleanup, no per-user infra needed
+- **API safety nets** — rate limiting, upload size limits, path-traversal protection
+
+## 🛠️ Tech stack
+
+| Layer | Tools |
+|---|---|
+| API | FastAPI + Uvicorn |
+| Embeddings | `sentence-transformers` (`all-MiniLM-L6-v2`) |
+| Vector store | Chroma or FAISS |
+| LLMs | OpenAI, Gemini, or Claude |
+| Evaluation | RAGAS (CI-gated) |
+| Tracking | MLflow |
+| Deployment | Docker on Railway |
+
+## 🚀 Live demo
+
+👉 **[codecompass-production-518f.up.railway.app](https://codecompass-production-518f.up.railway.app)** — no install needed.
+
+## 💻 Run locally
 
 ```bash
-# 1. Set up environment
-python -m venv venv && source venv/bin/activate
+git clone https://github.com/anjalinegi28/CodeCompass.git
+cd CodeCompass
+python -m venv venv && source venv/bin/activate   # Windows: venv\Scripts\activate
 pip install -r requirements.txt
-cp .env.example .env   # then fill in your API key(s)
-
-# 2. Ingest an entire project folder (this is the "give it the whole project" step)
-python cli.py ingest /path/to/some/repo
-
-# 3. Ask a question
-python cli.py ask "How does the authentication middleware work?"
-
-# 4. Run the eval suite manually (same thing CI runs on every PR)
-python -m app.eval.ragas_eval
-
-# 5. Or run everything with Docker (app + vector DB + MLflow UI)
-docker compose up --build
+cp .env.example .env       # add your OPENAI_API_KEY / GOOGLE_API_KEY / ANTHROPIC_API_KEY
+uvicorn app.api.main:app --reload
 ```
 
-## How the CI/CD gate works
+Open `http://localhost:8000`.
 
-`.github/workflows/eval-gate.yml` runs on every pull request:
+## ⚙️ Key config (`app/config.py`)
 
-1. Re-ingests the repo at the PR's commit
-2. Runs the fixed eval question set through the RAG agent
-3. Scores every answer with RAGAS (faithfulness, context precision, context recall)
-4. Logs the run to MLflow (params: chunk size, embedding model, LLM provider; results: scores)
-5. Fails the workflow (blocking merge, if branch protection requires this check) if any score
-   drops below the threshold set in `app/config.py`
+| Variable | Default | Purpose |
+|---|---|---|
+| `llm_provider` | `openai` | `openai` / `gemini` / `claude` |
+| `embedding_model` | `all-MiniLM-L6-v2` | Embedding model |
+| `vector_store` | `chroma` | `chroma` / `faiss` |
+| `chunk_size` / `chunk_overlap` | `800` / `120` | Chunking strategy |
+| `eval_threshold` | `0.70` | Min RAGAS score to pass CI |
+| `max_upload_size_bytes` | `1 GB` | Upload size cap |
 
-## Swapping LLM providers
+## 📂 Structure
 
-Set `LLM_PROVIDER=openai|gemini|claude` in `.env`. `app/rag/providers.py` is a
-thin factory — add a new provider by adding one function there.
+```
+CodeCompass/
+├── app/
+│   ├── api/            # FastAPI routes
+│   ├── ingestion/       # Loading + chunking
+│   ├── rag/             # Retrieval + generation
+│   ├── vectorstore/      # Chroma / FAISS wrapper
+│   ├── eval/             # RAGAS gate
+│   └── config.py
+├── static/               # Frontend
+├── requirements.txt
+└── railway.json
+```
 
-## Notes on scope
+## ✅ Evaluation
 
-This is a full working scaffold: ingestion, chunking, embedding, vector
-storage, RAG querying with citations, stale-doc detection, RAGAS evaluation,
-MLflow logging, a FastAPI service, a CLI, Docker packaging, and a real GitHub
-Actions gate. To actually run end-to-end you'll need to supply your own LLM
-API key(s) in `.env` — everything else runs locally out of the box.
+Every PR runs a RAGAS gate automatically. Trigger it manually anytime:
+```bash
+curl -X POST http://localhost:8000/eval
+```
+
+## 🤝 Contributing
+
+Issues and PRs welcome — please make sure the eval gate still passes.
+
+## 👤 Author
+
+**Anjali Negi** · [GitHub @anjalinegi28](https://github.com/anjalinegi28)
+
+## 📄 License
+
+[MIT](LICENSE)
