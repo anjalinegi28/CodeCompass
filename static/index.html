@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+\<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
@@ -425,14 +425,33 @@ fileInput.addEventListener('change', () => {
   }
 });
 
+const LARGE_FOLDER_WARNING_THRESHOLD = 5000;
+
 folderInput.addEventListener('change', () => {
-  if (folderInput.files.length > 0) {
-    const allFiles = Array.from(folderInput.files);
+  if (folderInput.files.length === 0) return;
+
+  const allFiles = Array.from(folderInput.files);
+  const topFolder = allFiles[0].webkitRelativePath.split('/')[0];
+
+  // Give immediate feedback before the filter loop runs, so a big folder
+  // doesn't look frozen — the browser already spent time reading every
+  // file in the folder before this event even fired, which is the real
+  // source of any delay (not the filtering below).
+  fileNameEl.textContent = `Scanning ${allFiles.length.toLocaleString()} files in ${topFolder}/…`;
+  uploadBtn.disabled = true;
+  uploadError.textContent = '';
+
+  // Defer the filter to the next tick so the "Scanning…" text actually
+  // paints before the (synchronous) filtering work runs.
+  setTimeout(() => {
     selectedFolderFiles = allFiles.filter(shouldIncludeFile);
-    const topFolder = allFiles[0].webkitRelativePath.split('/')[0];
     fileNameEl.textContent = `${topFolder}/ (${selectedFolderFiles.length} of ${allFiles.length} files — code/docs only)`;
     uploadBtn.disabled = selectedFolderFiles.length === 0;
-  }
+
+    if (allFiles.length > LARGE_FOLDER_WARNING_THRESHOLD) {
+      uploadError.textContent = `That folder has ${allFiles.length.toLocaleString()} files — likely more than your project (check you didn't pick a parent folder, or that node_modules/venv/.git aren't nested deep inside). Zipping just the folder you need and using "Upload .zip" will be much faster.`;
+    }
+  }, 30);
 });
 
 dropZone.addEventListener('dragover', (e) => { e.preventDefault(); dropZone.classList.add('dragover'); });
