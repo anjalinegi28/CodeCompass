@@ -26,12 +26,14 @@ from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
+from app.config import settings
 from app.eval.ragas_eval import run_eval
 from app.ingestion.chunker import chunk_files
 from app.ingestion.loader import load_folder, load_zip
 from app.rag.agent import ask as rag_ask
 from app.stale_docs.watcher import check_doc_staleness
 from app.vectorstore import get_store
+from fastapi.concurrency import run_in_threadpool
 
 app = FastAPI(
     title="CodeCompass API",
@@ -93,10 +95,11 @@ def _check_rate_limit(request: Request, limit: int, window: int, bucket: str) ->
     _request_log[key] = recent
 
 
-MAX_UPLOAD_SIZE_BYTES = 500 * 1024 * 1024  # 500 MB — generous since node_modules/.git/
-# venv/dist/build are already excluded by app/config.py's excluded_dirs, and only
-# text/code file extensions are read (see allowed_extensions), so real repos rarely
-# get close to this even though the raw zip/folder might look bigger.
+MAX_UPLOAD_SIZE_BYTES = settings.max_upload_size_bytes  # 1 GB — see app/config.py
+# generous since node_modules/.git/venv/dist/build are already excluded by
+# app/config.py's excluded_dirs, and only text/code file extensions are read
+# (see allowed_extensions), so real repos rarely get close to this even
+# though the raw zip/folder might look bigger.
 
 
 class IngestFolderRequest(BaseModel):
@@ -184,12 +187,12 @@ async def ingest_zip(request: Request, file: UploadFile = File(...)):
             if size > MAX_UPLOAD_SIZE_BYTES:
                 tmp.close()
                 Path(tmp.name).unlink(missing_ok=True)
-                raise HTTPException(status_code=400, detail="Zip file is too large (500 MB limit for this demo).")
+                raise HTTPException(status_code=400, detail="Zip file is too large (1 GB limit for this demo).")
             tmp.write(chunk)
         tmp_path = Path(tmp.name)
 
     try:
-        loaded_files = load_zip(tmp_path)
+        loaded_files = await run_in_threadpool(load_zip, tmp_path)
     finally:
         tmp_path.unlink(missing_ok=True)
 
@@ -198,8 +201,8 @@ async def ingest_zip(request: Request, file: UploadFile = File(...)):
 
     session_id = uuid.uuid4().hex
     store = get_store(_collection_name(session_id))
-    chunks = chunk_files(loaded_files)
-    indexed = store.add(chunks)
+    chunks = await run_in_threadpool(chunk_files, loaded_files)
+    indexed = await run_in_threadpool(store.add, chunks)
     _touch_session(session_id)
 
     return IngestResponse(session_id=session_id, files_ingested=len(loaded_files), chunks_indexed=indexed)
@@ -246,18 +249,18 @@ async def ingest_files(
             if total_size > MAX_UPLOAD_SIZE_BYTES:
                 raise HTTPException(
                     status_code=400,
-                    detail="Folder is too large (500 MB total limit for this demo).",
+                    detail="Folder is too large (1 GB total limit for this demo).",
                 )
             dest_path.write_bytes(content)
 
-        loaded_files = load_folder(str(tmp_dir))
+        loaded_files = await run_in_threadpool(load_folder, str(tmp_dir))
         if not loaded_files:
             raise HTTPException(status_code=400, detail="No ingestible files found in that folder.")
 
         session_id = uuid.uuid4().hex
         store = get_store(_collection_name(session_id))
-        chunks = chunk_files(loaded_files)
-        indexed = store.add(chunks)
+        chunks = await run_in_threadpool(chunk_files, loaded_files)
+        indexed = await run_in_threadpool(store.add, chunks)
         _touch_session(session_id)
 
         return IngestResponse(session_id=session_id, files_ingested=len(loaded_files), chunks_indexed=indexed)

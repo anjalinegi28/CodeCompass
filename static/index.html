@@ -1,4 +1,4 @@
-\<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
@@ -290,7 +290,7 @@
 
   <button id="uploadBtn" disabled>Upload &amp; index project</button>
   <div id="uploadError"></div>
-  <div class="limits">Limit: 500 MB per upload &middot; 2 uploads per 10 minutes &middot; data auto-deletes after 2 hours of inactivity</div>
+  <div class="limits">Limit: 1 GB per upload &middot; 2 uploads per 10 minutes &middot; data auto-deletes after 2 hours of inactivity</div>
 </div>
 
 <div class="how rise rise-3" id="how">
@@ -371,7 +371,7 @@ let uploadMode = 'zip';
 // excluded_dirs in app/config.py.
 const EXCLUDED_DIRS = new Set(['node_modules', '.git', 'venv', '.venv', '__pycache__', 'dist', 'build', '.next', '.codecompass', 'mlruns', '.pytest_cache']);
 const ALLOWED_EXTENSIONS = new Set(['.py', '.js', '.ts', '.tsx', '.jsx', '.java', '.go', '.rb', '.rs', '.c', '.cpp', '.h', '.hpp', '.cs', '.php', '.swift', '.kt', '.md', '.mdx', '.rst', '.txt', '.yaml', '.yml', '.json', '.toml']);
-const MAX_FILE_SIZE = 1_000_000;
+const MAX_FILE_SIZE = 5_000_000; // 5 MB per file — skip generated/binary-ish outliers, not real source files
 
 function shouldIncludeFile(file) {
   const pathParts = file.webkitRelativePath.split('/');

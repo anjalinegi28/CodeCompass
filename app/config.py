@@ -51,7 +51,11 @@ class Settings(BaseSettings):
     )
 
     # Max file size (bytes) to ingest — skip huge generated/binary-ish files
-    max_file_size_bytes: int = 1_000_000
+    max_file_size_bytes: int = 5_000_000
+
+    # Max total upload size (bytes) per request — enforced in app/api/main.py
+    # against the incoming zip/file payload before it's written to disk.
+    max_upload_size_bytes: int = 1_000_000_000  # 1 GB
 
 
 settings = Settings()
