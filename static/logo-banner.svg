@@ -1,0 +1,7 @@
+<svg width="360" height="76" viewBox="0 0 360 76" xmlns="http://www.w3.org/2000/svg">
+  <rect width="360" height="76" rx="12" fill="#0D1613"/>
+  <circle cx="38" cy="38" r="17" fill="#0D1613" stroke="#C9A24A" stroke-width="1.5"/>
+  <path d="M38 24L42.5 38L38 34.5L33.5 38Z" fill="#C9A24A"/>
+  <path d="M38 52L33.5 38L38 41.5L42.5 38Z" fill="#F1EEE4" fill-opacity="0.75"/>
+  <text x="68" y="46" font-family="Arial, Helvetica, sans-serif" font-weight="700" font-size="26" letter-spacing="2" fill="#F1EEE4">CODE<tspan fill="#C9A24A">COMPASS</tspan></text>
+</svg>
