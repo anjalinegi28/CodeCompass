@@ -8,7 +8,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 
 from app.rag.providers import complete
-from app.vectorstore import get_store
+from app.vectorstore import DEFAULT_COLLECTION_NAME, get_store
 from app.vectorstore.base import SearchResult
 
 SYSTEM_PROMPT = """You are CodeCompass, an assistant that answers questions about a codebase.
@@ -39,8 +39,13 @@ def _format_context(results: list[SearchResult]) -> str:
     return "\n\n".join(blocks)
 
 
-def ask(question: str, k: int = 5, provider: str | None = None) -> Answer:
-    store = get_store()
+def ask(
+    question: str,
+    k: int = 5,
+    provider: str | None = None,
+    collection_name: str = DEFAULT_COLLECTION_NAME,
+) -> Answer:
+    store = get_store(collection_name)
     results = store.query(question, k=k)
 
     if not results:

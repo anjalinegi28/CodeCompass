@@ -9,19 +9,24 @@ from app.ingestion.chunker import Chunk
 from app.ingestion.embedder import embed_texts
 from app.vectorstore.base import SearchResult
 
-COLLECTION_NAME = "codecompass_chunks"
+DEFAULT_COLLECTION_NAME = "codecompass_chunks"
 
 
 class ChromaStore:
-    def __init__(self):
+    def __init__(self, collection_name: str = DEFAULT_COLLECTION_NAME):
         import chromadb
 
+        self.collection_name = collection_name
         self.client = chromadb.PersistentClient(path=settings.chroma_persist_dir)
-        self.collection = self.client.get_or_create_collection(COLLECTION_NAME)
+        self.collection = self.client.get_or_create_collection(self.collection_name)
 
     def reset(self):
-        self.client.delete_collection(COLLECTION_NAME)
-        self.collection = self.client.get_or_create_collection(COLLECTION_NAME)
+        self.client.delete_collection(self.collection_name)
+        self.collection = self.client.get_or_create_collection(self.collection_name)
+
+    def delete(self):
+        """Fully remove this collection (used to clean up expired sessions)."""
+        self.client.delete_collection(self.collection_name)
 
     def add(self, chunks: list[Chunk]) -> int:
         if not chunks:

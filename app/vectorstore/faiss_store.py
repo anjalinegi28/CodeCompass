@@ -16,15 +16,19 @@ from app.ingestion.chunker import Chunk
 from app.ingestion.embedder import embed_texts
 from app.vectorstore.base import SearchResult
 
+DEFAULT_COLLECTION_NAME = "codecompass_chunks"
 METADATA_FILE_SUFFIX = ".meta.json"
 
 
 class FaissStore:
-    def __init__(self):
+    def __init__(self, collection_name: str = DEFAULT_COLLECTION_NAME):
         import faiss
 
         self._faiss = faiss
-        self.index_path = settings.faiss_index_path
+        self.collection_name = collection_name
+        # Each collection gets its own index file, e.g.
+        # .codecompass/faiss_index__session_abc123
+        self.index_path = f"{settings.faiss_index_path}__{collection_name}"
         self.meta_path = self.index_path + METADATA_FILE_SUFFIX
         self.index = None
         self.metadatas: list[dict] = []
@@ -48,6 +52,10 @@ class FaissStore:
         for p in (self.index_path, self.meta_path):
             if os.path.exists(p):
                 os.remove(p)
+
+    def delete(self):
+        """Fully remove this collection's files (used to clean up expired sessions)."""
+        self.reset()
 
     def add(self, chunks: list[Chunk]) -> int:
         if not chunks:
