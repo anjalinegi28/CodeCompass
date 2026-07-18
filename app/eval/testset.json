@@ -1,0 +1,22 @@
+[
+  {
+    "question": "How does the login function verify a user's password?",
+    "ground_truth": "It hashes the submitted password and compares it against the stored password hash; a match logs the user in."
+  },
+  {
+    "question": "What happens when the chunker reaches the end of a file?",
+    "ground_truth": "It stops producing new windows once the line cursor reaches the end of the file's lines."
+  },
+  {
+    "question": "How does the vector store decide which backend to use?",
+    "ground_truth": "It reads the VECTOR_STORE setting and returns either the Chroma or FAISS implementation accordingly."
+  },
+  {
+    "question": "What triggers a document to be flagged as stale?",
+    "ground_truth": "The cosine similarity between the doc's embedding and a fresh summary of the code drops below the stale threshold."
+  },
+  {
+    "question": "What happens if a RAGAS score drops below the configured threshold?",
+    "ground_truth": "The evaluation script exits with a non-zero status, which fails the CI check and blocks the pull request from merging."
+  }
+]

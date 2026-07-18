@@ -1,0 +1,20 @@
+services:
+  codecompass-api:
+    build: .
+    ports:
+      - "8000:8000"
+    env_file:
+      - .env
+    volumes:
+      - ./.codecompass:/app/.codecompass
+      # Mount whatever project folder you want CodeCompass to read.
+      # Then call POST /ingest/folder with folder_path=/project
+      - ${PROJECT_TO_INGEST:-./sample_project}:/project:ro
+
+  mlflow-ui:
+    build: .
+    command: mlflow ui --backend-store-uri /app/.codecompass/mlruns --host 0.0.0.0 --port 5000
+    ports:
+      - "5000:5000"
+    volumes:
+      - ./.codecompass:/app/.codecompass

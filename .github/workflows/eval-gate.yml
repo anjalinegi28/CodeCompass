@@ -1,0 +1,52 @@
+name: RAG eval gate
+
+# Runs on every pull request. If the RAG agent's answer quality (measured by
+# RAGAS: faithfulness, context precision, context recall) drops below the
+# threshold in app/config.py, this workflow fails — and if branch protection
+# requires this check, GitHub blocks the merge until it's fixed.
+
+on:
+  pull_request:
+    branches: [main]
+
+jobs:
+  eval-gate:
+    runs-on: ubuntu-latest
+    env:
+      LLM_PROVIDER: ${{ vars.LLM_PROVIDER || 'openai' }}
+      OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+      ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+      GOOGLE_API_KEY: ${{ secrets.GOOGLE_API_KEY }}
+      MLFLOW_TRACKING_URI: ./.codecompass/mlruns
+
+    steps:
+      - name: Check out PR branch
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: "pip"
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run unit tests
+        run: pytest tests/ -v
+
+      - name: Re-ingest repo at this commit
+        run: python cli.py ingest . --reset
+
+      - name: Run RAGAS eval gate
+        run: python -m app.eval.ragas_eval
+        # Non-zero exit here fails the job, which fails the required check,
+        # which blocks the merge (given branch protection is configured to
+        # require this workflow).
+
+      - name: Upload MLflow run artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: mlflow-eval-run
+          path: .codecompass/mlruns

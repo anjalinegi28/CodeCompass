@@ -1,0 +1,58 @@
+# Core RAG stack
+# NOTE: langchain / langchain-core / langchain-community / langgraph are
+# pinned to the 0.2.x line on purpose. ragas 0.1.x internally requires
+# langchain-core<0.3, and langgraph/langchain-google-genai versions newer
+# than this break against that older langchain-core. If you ever want to
+# upgrade ragas to a newer major version, all of these will need to move
+# together — don't bump just one.
+langchain==0.2.17
+langchain-core==0.2.43
+langchain-community==0.2.19
+langgraph==0.2.76
+sentence-transformers>=2.7.0
+tokenizers<=0.22.2
+chromadb>=0.5.0
+faiss-cpu>=1.8.0
+
+# NOTE: scipy pinned below 1.14 because newer scipy requires numpy>=2.0,
+# which conflicts with the numpy version pulled in by sentence-transformers/
+# ragas's dependency chain. If you upgrade numpy to 2.x deliberately across
+# the whole project, this pin can be relaxed.
+scipy<1.14
+
+# Multi-provider LLM support
+openai>=1.30.0
+anthropic>=0.30.0
+google-genai>=0.3.0
+# Do NOT add langchain-google-genai here — it repeatedly pulls in a newer
+# langchain-core than ragas supports. Gemini eval scoring is wired directly
+# through app/rag/providers.py instead (see app/eval/ragas_eval.py).
+
+# Evaluation
+# NOTE: ragas pinned to 0.1.22 specifically. ragas>=0.4 has a broken import
+# (langchain_community.chat_models.vertexai, which was moved to a different
+# package upstream) that crashes on import regardless of which LLM provider
+# you actually use.
+ragas==0.1.22
+datasets>=2.19.0
+
+# MLOps
+# NOTE: app/config.py points MLflow at a SQLite backend
+# (sqlite:///./.codecompass/mlflow.db) instead of the plain folder store,
+# because newer MLflow puts the folder-based filestore into maintenance
+# mode and refuses to write to it.
+mlflow>=2.13.0
+
+# API + CLI
+fastapi>=0.111.0
+uvicorn>=0.30.0
+python-multipart>=0.0.9
+click>=8.1.7
+python-dotenv>=1.0.1
+pydantic>=2.7.0
+pydantic-settings>=2.2.1
+
+# Testing
+pytest>=8.2.0
+pytest-mock>=3.14.0
+httpx>=0.27.0
