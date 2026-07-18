@@ -3,290 +3,277 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>CodeCompass — Ask any codebase</title>
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Ccircle cx='12' cy='12' r='10' fill='%232451DB'/%3E%3Cpath d='M15 9l-4 2-2 4 4-2z' fill='%23F2A93B'/%3E%3C/svg%3E">
+<title>CodeCompass — Chart any codebase</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Ccircle cx='12' cy='12' r='10' fill='%230F1B2D' stroke='%23C9A24A' stroke-width='1'/%3E%3Cpath d='M12 5.5L14.3 12L12 10.3L9.7 12Z' fill='%23C9A24A'/%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
   :root {
-    --bg: #F6F7F9;
-    --surface: #FFFFFF;
-    --surface-sunken: #F0F2F5;
-    --border: #E1E4EA;
-    --text: #14171F;
-    --muted: #667085;
-    --accent: #2451DB;
-    --accent-hover: #1D3FB0;
-    --accent-tint: #EBF0FE;
-    --gold: #F2A93B;
-    --danger: #D64545;
-    --danger-tint: #FBEAEA;
+    --bg: #14201C;
+    --bg-deep: #0D1613;
+    --surface: #1B2C25;
+    --surface-raised: #23392F;
+    --border: #2E4238;
+    --border-strong: #425A4D;
+    --ink: #F1EEE4;
+    --muted: #9CAEA4;
+    --muted-dim: #6C8078;
+    --brass: #C9A24A;
+    --brass-hover: #DDB863;
+    --brass-dim: #8A713A;
+    --brass-tint: rgba(201,162,74,0.12);
+    --brass-tint-strong: rgba(201,162,74,0.22);
+    --teal: #57B096;
+    --teal-tint: rgba(87,176,150,0.14);
+    --danger: #DB7256;
+    --danger-tint: rgba(219,114,86,0.14);
     --radius-lg: 16px;
     --radius-md: 10px;
-    --shadow: 0 1px 2px rgba(20,23,31,0.04), 0 8px 24px -12px rgba(20,23,31,0.08);
+    --radius-sm: 6px;
+    --mono: 'IBM Plex Mono', ui-monospace, monospace;
+    --sans: 'IBM Plex Sans', -apple-system, Segoe UI, sans-serif;
+    --serif: 'Instrument Serif', Georgia, serif;
   }
   * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
   html, body {
     margin: 0;
-    background: var(--bg);
-    color: var(--text);
-    font-family: 'Inter', -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+    background:
+      radial-gradient(ellipse 1100px 600px at 82% -10%, rgba(201,162,74,0.09), transparent 60%),
+      radial-gradient(ellipse 800px 500px at -10% 40%, rgba(87,176,150,0.05), transparent 60%),
+      var(--bg);
+    background-attachment: fixed;
+    color: var(--ink);
+    font-family: var(--sans);
+    -webkit-font-smoothing: antialiased;
   }
-  body {
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-  }
+  body { min-height: 100vh; display: flex; flex-direction: column; align-items: center; }
   @media (prefers-reduced-motion: reduce) {
     * { animation-duration: 0.001ms !important; transition-duration: 0.001ms !important; }
   }
+  @keyframes rise { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+  .rise { animation: rise 0.6s cubic-bezier(.16,.84,.44,1) both; }
+  .rise-1 { animation-delay: 0.05s; } .rise-2 { animation-delay: 0.15s; } .rise-3 { animation-delay: 0.25s; }
 
-  nav.topbar {
-    width: 100%;
-    display: flex;
-    justify-content: center;
-    border-bottom: 1px solid var(--border);
-    background: var(--surface);
-  }
-  .topbar-inner {
-    width: 100%;
-    max-width: 880px;
-    padding: 16px 24px;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-  }
-  .wordmark {
-    font-family: 'Space Grotesk', sans-serif;
-    font-weight: 600;
-    font-size: 1.05rem;
-    letter-spacing: -0.01em;
-    color: var(--text);
-  }
-  @keyframes spin {
-    0%   { transform: rotate(0deg); }
-    50%  { transform: rotate(200deg); }
-    100% { transform: rotate(360deg); }
-  }
+  /* ---------- Nav ---------- */
+  nav.topbar { width: 100%; display: flex; justify-content: center; border-bottom: 1px solid var(--border); background: rgba(13,22,19,0.7); backdrop-filter: blur(8px); position: sticky; top: 0; z-index: 10; }
+  .topbar-inner { width: 100%; max-width: 980px; padding: 16px 24px; display: flex; align-items: center; justify-content: space-between; }
+  .brand { display: flex; align-items: center; gap: 10px; }
+  .wordmark { font-family: var(--sans); font-weight: 600; font-size: 0.88rem; letter-spacing: 0.16em; text-transform: uppercase; color: var(--ink); }
+  .wordmark span { color: var(--brass); }
+  .tagline { font-family: var(--mono); font-size: 0.72rem; color: var(--muted-dim); letter-spacing: 0.04em; }
 
-  main {
-    width: 100%;
-    max-width: 880px;
-    padding: 40px 24px 60px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    flex: 1;
-  }
+  main { width: 100%; max-width: 980px; padding: 0 24px 90px; display: flex; flex-direction: column; align-items: center; flex: 1; }
 
-  .hero { text-align: center; margin-bottom: 32px; max-width: 560px; }
-  .eyebrow {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    font-size: 0.78rem;
-    font-weight: 500;
-    color: var(--accent);
-    background: var(--accent-tint);
-    padding: 5px 12px;
-    border-radius: 999px;
-    margin-bottom: 16px;
+  /* ---------- Hero ---------- */
+  .hero { width: 100%; display: grid; grid-template-columns: 1.05fr 0.95fr; align-items: center; gap: 36px; padding: 68px 0 30px; }
+  .eyebrow { display: inline-flex; align-items: center; gap: 8px; font-family: var(--mono); font-size: 0.72rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--brass); margin-bottom: 20px; }
+  .eyebrow::before { content: ''; width: 18px; height: 1px; background: var(--brass); display: inline-block; }
+  .hero h1 { font-family: var(--serif); font-style: italic; font-weight: 400; font-size: 3.4rem; line-height: 1.04; letter-spacing: -0.01em; margin: 0 0 18px; color: var(--ink); }
+  .hero p { color: var(--muted); font-size: 1.04rem; line-height: 1.65; margin: 0 0 28px; max-width: 44ch; }
+  .hero-ctas { display: flex; gap: 12px; align-items: center; }
+  .btn-primary-link {
+    display: inline-flex; align-items: center; gap: 8px; padding: 12px 20px; border-radius: var(--radius-md);
+    background: var(--brass); color: var(--bg-deep); font-weight: 600; font-size: 0.9rem; text-decoration: none;
+    border: 1px solid var(--brass); transition: background 0.15s, transform 0.15s;
   }
-  .hero h1 {
-    font-family: 'Space Grotesk', sans-serif;
-    font-size: 2.1rem;
-    line-height: 1.15;
-    letter-spacing: -0.02em;
-    margin: 0 0 12px;
+  .btn-primary-link:hover { background: var(--brass-hover); transform: translateY(-1px); }
+  .btn-ghost-link {
+    font-family: var(--mono); font-size: 0.82rem; color: var(--muted); text-decoration: none;
+    border-bottom: 1px dotted var(--border-strong); padding-bottom: 1px; transition: color 0.15s, border-color 0.15s;
   }
-  .hero p {
-    color: var(--muted);
-    font-size: 1rem;
-    line-height: 1.55;
-    margin: 0;
-  }
+  .btn-ghost-link:hover { color: var(--brass); border-color: var(--brass); }
 
+  /* ---------- Hero demo panel (live example, not just decoration) ---------- */
+  .demo-panel {
+    background: linear-gradient(180deg, var(--surface-raised), var(--surface));
+    border: 1px solid var(--border-strong);
+    border-radius: var(--radius-lg);
+    padding: 4px;
+    box-shadow: 0 1px 0 rgba(255,255,255,0.03) inset, 0 24px 60px -30px rgba(0,0,0,0.7);
+    position: relative;
+  }
+  .demo-panel::before {
+    content: '';
+    position: absolute; inset: -1px; border-radius: var(--radius-lg);
+    padding: 1px;
+    background: linear-gradient(135deg, var(--brass-dim), transparent 40%);
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor; mask-composite: exclude;
+    pointer-events: none; opacity: 0.5;
+  }
+  .demo-inner { background: var(--bg-deep); border-radius: calc(var(--radius-lg) - 4px); padding: 20px; }
+  .demo-topline { display: flex; align-items: center; gap: 6px; margin-bottom: 16px; }
+  .demo-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--border-strong); }
+  .demo-topline-label { font-family: var(--mono); font-size: 0.68rem; color: var(--muted-dim); letter-spacing: 0.08em; text-transform: uppercase; margin-left: 6px; }
+  .demo-q { font-family: var(--sans); font-size: 0.86rem; color: var(--muted); margin-bottom: 14px; padding-bottom: 14px; border-bottom: 1px dashed var(--border); }
+  .demo-q strong { color: var(--ink); font-weight: 500; }
+  .demo-a { font-size: 0.9rem; line-height: 1.6; color: var(--ink); margin-bottom: 14px; }
+  .demo-bearing { display: inline-flex; align-items: center; gap: 6px; font-family: var(--mono); font-size: 0.76rem; color: var(--teal); background: var(--teal-tint); border: 1px solid rgba(87,176,150,0.3); padding: 5px 10px; border-radius: 999px; }
+  .demo-bearing::before { content: '\2726'; color: var(--brass); font-size: 0.7rem; }
+
+  .rose-wrap { display: flex; justify-content: center; align-items: center; margin-top: 18px; opacity: 0.9; }
+  .rose-ring { animation: rose-spin 50s linear infinite; transform-origin: 60px 60px; }
+  @keyframes rose-spin { to { transform: rotate(360deg); } }
+
+  /* ---------- Route / how it works ---------- */
+  .how { width: 100%; margin: 8px 0 44px; }
+  .how-heading { display: flex; align-items: center; gap: 14px; margin-bottom: 22px; }
+  .how-heading-line { flex: 1; height: 0; border-top: 1px dotted var(--border-strong); }
+  .how-heading span { font-family: var(--mono); font-size: 0.7rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted-dim); white-space: nowrap; }
+  .how-steps { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .how-step {
+    background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-md);
+    padding: 18px 20px; display: flex; gap: 14px; align-items: flex-start;
+    transition: border-color 0.15s, transform 0.15s;
+  }
+  .how-step:hover { border-color: var(--border-strong); transform: translateY(-2px); }
+  .how-step .mark { font-family: var(--mono); font-size: 0.72rem; color: var(--brass); border: 1px solid var(--brass-dim); border-radius: 50%; width: 26px; height: 26px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .how-step h3 { font-family: var(--sans); font-size: 0.92rem; font-weight: 600; margin: 0 0 4px; color: var(--ink); }
+  .how-step p { font-size: 0.83rem; color: var(--muted); margin: 0; line-height: 1.5; }
+
+  /* ---------- Upload console ---------- */
   #uploadScreen {
-    width: 100%;
-    max-width: 520px;
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: var(--radius-lg);
-    box-shadow: var(--shadow);
-    padding: 28px;
+    width: 100%; background: linear-gradient(180deg, var(--surface-raised), var(--surface));
+    border: 1px solid var(--border-strong); border-radius: var(--radius-lg);
+    padding: 28px 30px 26px; box-shadow: 0 1px 0 rgba(255,255,255,0.03) inset, 0 24px 60px -34px rgba(0,0,0,0.7);
+    position: relative;
   }
-  #uploadScreen h2 {
-    font-family: 'Space Grotesk', sans-serif;
-    font-size: 1.05rem;
-    margin: 0 0 4px;
+  #uploadScreen::before, #uploadScreen::after {
+    content: ''; position: absolute; top: 14px; width: 5px; height: 5px; border-radius: 50%;
+    background: var(--brass-dim); box-shadow: 0 0 0 3px var(--bg-deep) inset;
   }
-  #uploadScreen > p { color: var(--muted); font-size: 0.88rem; margin: 0 0 18px; }
+  #uploadScreen::before { left: 14px; }
+  #uploadScreen::after { right: 14px; }
+  #uploadScreen h2 { font-family: var(--serif); font-style: italic; font-weight: 400; font-size: 1.55rem; margin: 0 0 4px; color: var(--ink); }
+  #uploadScreen > p { color: var(--muted); font-size: 0.88rem; margin: 0 0 20px; }
 
-  #modeTabs { display: flex; gap: 6px; padding: 4px; background: var(--surface-sunken); border-radius: 10px; margin-bottom: 16px; }
-  .modeTab {
-    flex: 1;
-    padding: 9px;
-    border-radius: 7px;
-    border: none;
-    background: transparent;
-    color: var(--muted);
-    cursor: pointer;
-    font-family: inherit;
-    font-size: 0.87rem;
-    font-weight: 500;
-    transition: background 0.15s, color 0.15s;
-  }
-  .modeTab.active { background: var(--surface); color: var(--text); box-shadow: 0 1px 2px rgba(20,23,31,0.08); }
+  #modeTabs { display: flex; gap: 6px; padding: 4px; background: var(--bg-deep); border: 1px solid var(--border); border-radius: 10px; margin-bottom: 18px; }
+  .modeTab { flex: 1; padding: 9px; border-radius: 7px; border: none; background: transparent; color: var(--muted); cursor: pointer; font-family: var(--mono); font-size: 0.78rem; letter-spacing: 0.06em; text-transform: uppercase; font-weight: 500; transition: background 0.15s, color 0.15s; }
+  .modeTab.active { background: var(--brass-tint-strong); color: var(--brass); }
 
-  #dropZone {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 6px;
-    text-align: center;
-    border: 1.5px dashed var(--border);
-    border-radius: var(--radius-md);
-    padding: 32px 16px;
-    margin-bottom: 14px;
-    cursor: pointer;
-    background: var(--surface-sunken);
-    transition: border-color 0.15s, background 0.15s;
-  }
-  #dropZone:hover { border-color: var(--accent); background: var(--accent-tint); }
-  #dropZone.dragover { border-color: var(--accent); background: var(--accent-tint); }
+  #dropZone { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; text-align: center; border: 1.5px dashed var(--border-strong); border-radius: var(--radius-md); padding: 36px 16px; margin-bottom: 16px; cursor: pointer; background: var(--bg-deep); transition: border-color 0.15s, background 0.15s; }
+  #dropZone:hover, #dropZone.dragover { border-color: var(--brass); background: var(--brass-tint); }
   #dropZone input { display: none; }
-  #dropText { font-size: 0.92rem; color: var(--text); font-weight: 500; }
-  #dropSub { font-size: 0.78rem; color: var(--muted); }
-  #fileName { margin-top: 4px; font-family: 'JetBrains Mono', monospace; font-size: 0.8rem; color: var(--accent); }
+  #dropText { font-size: 0.92rem; color: var(--ink); font-weight: 500; }
+  #dropSub { font-size: 0.78rem; color: var(--muted); font-family: var(--mono); }
+  #fileName { margin-top: 6px; font-family: var(--mono); font-size: 0.8rem; color: var(--teal); }
 
-  #uploadBtn {
-    width: 100%;
-    padding: 12px;
-    border-radius: var(--radius-md);
-    border: none;
-    background: var(--accent);
-    color: #fff;
-    font-family: inherit;
-    font-weight: 600;
-    font-size: 0.95rem;
-    cursor: pointer;
-    transition: background 0.15s;
-  }
-  #uploadBtn:hover:not(:disabled) { background: var(--accent-hover); }
-  #uploadBtn:disabled { opacity: 0.45; cursor: not-allowed; }
+  #uploadBtn { width: 100%; padding: 13px; border-radius: var(--radius-md); border: 1px solid var(--brass); background: var(--brass); color: var(--bg-deep); font-family: var(--sans); font-weight: 600; font-size: 0.94rem; cursor: pointer; transition: background 0.15s, border-color 0.15s, transform 0.1s; }
+  #uploadBtn:hover:not(:disabled) { background: var(--brass-hover); border-color: var(--brass-hover); }
+  #uploadBtn:active:not(:disabled) { transform: scale(0.99); }
+  #uploadBtn:disabled { opacity: 0.35; cursor: not-allowed; }
   #uploadError { color: var(--danger); font-size: 0.83rem; margin-top: 10px; min-height: 1.2em; text-align: center; }
-  .limits { color: var(--muted); font-size: 0.76rem; margin-top: 16px; text-align: center; line-height: 1.5; }
+  .limits { color: var(--muted-dim); font-size: 0.74rem; margin-top: 16px; text-align: center; line-height: 1.6; font-family: var(--mono); }
 
-  #chatScreen { width: 100%; max-width: 720px; display: none; flex-direction: column; align-items: center; }
-  #sessionBar {
-    width: 100%;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 12px;
-    font-size: 0.82rem;
-    color: var(--muted);
-  }
-  #sessionInfo { font-family: 'JetBrains Mono', monospace; font-size: 0.78rem; }
-  #newProjectBtn {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    color: var(--text);
-    padding: 7px 14px;
-    border-radius: 8px;
-    cursor: pointer;
-    font-family: inherit;
-    font-size: 0.82rem;
-    font-weight: 500;
-    transition: border-color 0.15s;
-  }
-  #newProjectBtn:hover { border-color: var(--accent); color: var(--accent); }
+  /* ---------- Chat / log ---------- */
+  #chatScreen { width: 100%; display: none; flex-direction: column; align-items: center; }
+  #sessionBar { width: 100%; display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; font-size: 0.8rem; color: var(--muted); font-family: var(--mono); }
+  #newProjectBtn { background: transparent; border: 1px solid var(--border); color: var(--ink); padding: 7px 14px; border-radius: 8px; cursor: pointer; font-family: var(--sans); font-size: 0.82rem; font-weight: 500; transition: border-color 0.15s, color 0.15s; }
+  #newProjectBtn:hover { border-color: var(--brass); color: var(--brass); }
 
-  #chat {
-    width: 100%;
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: var(--radius-lg);
-    box-shadow: var(--shadow);
-    padding: 20px;
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    gap: 16px;
-    min-height: 48vh;
-    max-height: 58vh;
-    overflow-y: auto;
-    margin-bottom: 14px;
-  }
-  .empty-state { margin: auto; text-align: center; color: var(--muted); font-size: 0.9rem; max-width: 280px; }
+  #chat { width: 100%; background: linear-gradient(180deg, var(--surface-raised), var(--surface)); border: 1px solid var(--border-strong); border-radius: var(--radius-lg); padding: 20px; flex: 1; display: flex; flex-direction: column; gap: 16px; min-height: 46vh; max-height: 56vh; overflow-y: auto; margin-bottom: 14px; }
+  .empty-state { margin: auto; text-align: center; color: var(--muted); font-size: 0.9rem; max-width: 300px; line-height: 1.6; }
 
-  .msg { max-width: 82%; padding: 11px 15px; border-radius: 12px; line-height: 1.5; white-space: pre-wrap; font-size: 0.94rem; }
-  .msg.user { align-self: flex-end; background: var(--accent); color: #fff; border-bottom-right-radius: 4px; }
-  .msg.bot { align-self: flex-start; background: var(--surface-sunken); color: var(--text); border-bottom-left-radius: 4px; }
-  .msg.bot.thinking { display: flex; align-items: center; gap: 8px; color: var(--muted); }
+  .msg { max-width: 84%; padding: 12px 16px; border-radius: 10px; line-height: 1.55; white-space: pre-wrap; font-size: 0.94rem; }
+  .msg.user { align-self: flex-end; background: var(--brass-tint); color: var(--ink); border: 1px solid var(--brass-dim); border-bottom-right-radius: 3px; }
+  .msg.bot { align-self: flex-start; background: var(--bg-deep); color: var(--ink); border: 1px solid var(--border); border-bottom-left-radius: 3px; }
+  .msg.bot.thinking { display: flex; align-items: center; gap: 10px; color: var(--muted); }
 
-  .sources { margin-top: 10px; padding-top: 10px; border-top: 1px solid rgba(0,0,0,0.08); font-size: 0.78rem; color: var(--muted); }
-  .sources .sources-label { font-weight: 600; color: var(--text); margin-bottom: 3px; }
-  .sources div.src { font-family: 'JetBrains Mono', monospace; padding: 1px 0; }
+  .sources { margin-top: 12px; padding-top: 10px; border-top: 1px dotted var(--border-strong); font-size: 0.76rem; }
+  .sources .sources-label { font-family: var(--mono); text-transform: uppercase; letter-spacing: 0.08em; font-weight: 500; color: var(--brass); margin-bottom: 6px; font-size: 0.68rem; }
+  .sources div.src { font-family: var(--mono); color: var(--teal); padding: 2px 0; display: flex; align-items: center; gap: 6px; }
+  .sources div.src::before { content: '\2726'; font-size: 0.65rem; color: var(--brass); }
 
   form#askForm { width: 100%; display: flex; gap: 8px; }
-  input[type=text] {
-    flex: 1;
-    padding: 13px 16px;
-    border-radius: var(--radius-md);
-    border: 1px solid var(--border);
-    background: var(--surface);
-    color: var(--text);
-    font-family: inherit;
-    font-size: 0.95rem;
-  }
-  input[type=text]:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-tint); }
-  button.send {
-    padding: 12px 22px;
-    border-radius: var(--radius-md);
-    border: none;
-    background: var(--accent);
-    color: #fff;
-    font-family: inherit;
-    font-weight: 600;
-    font-size: 0.95rem;
-    cursor: pointer;
-    transition: background 0.15s;
-  }
-  button.send:hover:not(:disabled) { background: var(--accent-hover); }
+  input[type=text] { flex: 1; padding: 13px 16px; border-radius: var(--radius-md); border: 1px solid var(--border); background: var(--surface); color: var(--ink); font-family: var(--sans); font-size: 0.95rem; }
+  input[type=text]::placeholder { color: var(--muted-dim); }
+  input[type=text]:focus { outline: none; border-color: var(--brass); box-shadow: 0 0 0 3px var(--brass-tint); }
+  button.send { padding: 12px 24px; border-radius: var(--radius-md); border: 1px solid var(--brass); background: var(--brass); color: var(--bg-deep); font-family: var(--sans); font-weight: 600; font-size: 0.95rem; cursor: pointer; transition: background 0.15s; }
+  button.send:hover:not(:disabled) { background: var(--brass-hover); }
   button.send:disabled { opacity: 0.5; cursor: not-allowed; }
-  .hint { color: var(--muted); font-size: 0.78rem; margin-top: 12px; text-align: center; }
+  .hint { color: var(--muted-dim); font-size: 0.76rem; margin-top: 12px; text-align: center; font-family: var(--mono); }
+
+  footer { width: 100%; max-width: 980px; padding: 30px 24px 40px; text-align: center; }
+  footer p { font-family: var(--mono); font-size: 0.72rem; color: var(--muted-dim); margin: 0; letter-spacing: 0.02em; }
+
+  @media (max-width: 780px) {
+    .hero { grid-template-columns: 1fr; text-align: center; padding-top: 44px; }
+    .hero p { max-width: none; margin-left: auto; margin-right: auto; }
+    .hero-ctas { justify-content: center; }
+    .hero h1 { font-size: 2.5rem; }
+    .how-steps { grid-template-columns: 1fr; }
+    .rose-wrap { display: none; }
+  }
+
+  button:focus-visible, .modeTab:focus-visible, #dropZone:focus-visible, a:focus-visible { outline: 2px solid var(--brass); outline-offset: 2px; }
 </style>
 </head>
 <body>
 
 <nav class="topbar">
   <div class="topbar-inner">
-    <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-      <circle cx="12" cy="12" r="10" fill="#2451DB"/>
-      <circle cx="12" cy="12" r="10" stroke="#1D3FB0" stroke-width="0.5"/>
-      <path d="M12 5.5L14.5 12L12 10.5L9.5 12Z" fill="#F2A93B"/>
-      <path d="M12 18.5L9.5 12L12 13.5L14.5 12Z" fill="#fff" fill-opacity="0.85"/>
-      <circle cx="12" cy="12" r="1.4" fill="#fff"/>
-    </svg>
-    <span class="wordmark">CodeCompass</span>
+    <div class="brand">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+        <circle cx="12" cy="12" r="10" fill="#0D1613" stroke="#C9A24A" stroke-width="1"/>
+        <path d="M12 5.5L14.3 12L12 10.3L9.7 12Z" fill="#C9A24A"/>
+        <path d="M12 18.5L9.7 12L12 13.7L14.3 12Z" fill="#F1EEE4" fill-opacity="0.7"/>
+      </svg>
+      <span class="wordmark">Code<span>Compass</span></span>
+    </div>
+    <span class="tagline">RETRIEVAL-AUGMENTED CODE Q&amp;A</span>
   </div>
 </nav>
 
 <main>
 
-<div class="hero" id="heroBlock">
-  <span class="eyebrow">Retrieval-augmented Q&amp;A</span>
-  <h1>Ask questions about any codebase</h1>
-  <p>Upload a project — a zip or a whole folder — and get answers grounded in the actual code, with citations back to the exact file and line.</p>
+<div class="hero">
+  <div class="rise rise-1">
+    <span class="eyebrow">Ask any codebase</span>
+    <h1>Chart any codebase.</h1>
+    <p>Upload a project and ask questions in your own words. Every answer returns with a bearing — the exact file and line it was grounded in, so you can verify it yourself.</p>
+    <div class="hero-ctas">
+      <a href="#uploadScreen" class="btn-primary-link">Upload a project ↓</a>
+      <a href="#how" class="btn-ghost-link">How it works</a>
+    </div>
+  </div>
+
+  <div class="rise rise-2">
+    <div class="demo-panel">
+      <div class="demo-inner">
+        <div class="demo-topline">
+          <span class="demo-dot"></span><span class="demo-dot"></span><span class="demo-dot"></span>
+          <span class="demo-topline-label">Sample query</span>
+        </div>
+        <div class="demo-q">Question — <strong>"How does the checkout flow calculate the final price?"</strong></div>
+        <div class="demo-a">It totals the line items, applies any discount code, then adds tax based on the shipping address before charging the card.</div>
+        <span class="demo-bearing">src/payments/checkout.py:82-96</span>
+      </div>
+    </div>
+    <div class="rose-wrap">
+      <svg width="120" height="120" viewBox="0 0 120 120">
+        <g class="rose-ring">
+          <circle cx="60" cy="60" r="54" fill="none" stroke="#2E4238" stroke-width="1"/>
+          <circle cx="60" cy="60" r="45" fill="none" stroke="#2E4238" stroke-width="1"/>
+          <g stroke="#425A4D" stroke-width="1">
+            <line x1="60" y1="4" x2="60" y2="14"/>
+            <line x1="60" y1="106" x2="60" y2="116"/>
+            <line x1="4" y1="60" x2="14" y2="60"/>
+            <line x1="106" y1="60" x2="116" y2="60"/>
+          </g>
+        </g>
+        <path d="M60 22L69 60L60 51L51 60Z" fill="#C9A24A"/>
+        <path d="M60 98L51 60L60 69L69 60Z" fill="#F1EEE4" fill-opacity="0.7"/>
+        <circle cx="60" cy="60" r="3" fill="#F1EEE4"/>
+      </svg>
+    </div>
+  </div>
 </div>
 
 <div id="uploadScreen">
   <h2>Upload your project</h2>
-  <p>Choose a .zip file, or select a project folder directly — code files only.</p>
+  <p>Choose a .zip, or select a project folder directly — code and doc files only.</p>
 
   <div id="modeTabs">
     <button type="button" id="tabZip" class="modeTab active">Upload .zip</button>
@@ -306,6 +293,29 @@
   <div class="limits">Limit: 500 MB per upload &middot; 2 uploads per 10 minutes &middot; data auto-deletes after 2 hours of inactivity</div>
 </div>
 
+<div class="how rise rise-3" id="how">
+  <div class="how-heading">
+    <span>How it works</span>
+    <span class="how-heading-line"></span>
+  </div>
+  <div class="how-steps">
+    <div class="how-step">
+      <span class="mark">1</span>
+      <div>
+        <h3>Upload your project</h3>
+        <p>Send a .zip or select a folder directly. Every file is chunked and indexed so it can be searched by meaning, not just keywords.</p>
+      </div>
+    </div>
+    <div class="how-step">
+      <span class="mark">2</span>
+      <div>
+        <h3>Ask in your own words</h3>
+        <p>Questions are answered from the retrieved code — every response cites the exact file and line it came from.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
 <div id="chatScreen">
   <div id="sessionBar">
     <span id="sessionInfo"></span>
@@ -323,10 +333,13 @@
 
 </main>
 
+<footer>
+  <p>CodeCompass — agentic RAG with eval-gated CI/CD</p>
+</footer>
+
 <script>
 const uploadScreen = document.getElementById('uploadScreen');
 const chatScreen = document.getElementById('chatScreen');
-const heroBlock = document.getElementById('heroBlock');
 const dropZone = document.getElementById('dropZone');
 const dropText = document.getElementById('dropText');
 const dropSub = document.getElementById('dropSub');
@@ -339,6 +352,8 @@ const sessionInfo = document.getElementById('sessionInfo');
 const newProjectBtn = document.getElementById('newProjectBtn');
 const tabZip = document.getElementById('tabZip');
 const tabFolder = document.getElementById('tabFolder');
+const heroEl = document.querySelector('.hero');
+const howEl = document.querySelector('.how');
 
 const chat = document.getElementById('chat');
 const form = document.getElementById('askForm');
@@ -349,6 +364,26 @@ let sessionId = null;
 let selectedFile = null;
 let selectedFolderFiles = [];
 let uploadMode = 'zip';
+
+// --- Client-side filtering for folder uploads: skip junk dirs/files so a
+// huge folder (node_modules, .git, build output, images) doesn't hang the
+// browser or the upload. Mirrors the server's allowed_extensions /
+// excluded_dirs in app/config.py.
+const EXCLUDED_DIRS = new Set(['node_modules', '.git', 'venv', '.venv', '__pycache__', 'dist', 'build', '.next', '.codecompass', 'mlruns', '.pytest_cache']);
+const ALLOWED_EXTENSIONS = new Set(['.py', '.js', '.ts', '.tsx', '.jsx', '.java', '.go', '.rb', '.rs', '.c', '.cpp', '.h', '.hpp', '.cs', '.php', '.swift', '.kt', '.md', '.mdx', '.rst', '.txt', '.yaml', '.yml', '.json', '.toml']);
+const MAX_FILE_SIZE = 1_000_000;
+
+function shouldIncludeFile(file) {
+  const pathParts = file.webkitRelativePath.split('/');
+  if (pathParts.slice(0, -1).some(part => EXCLUDED_DIRS.has(part))) return false;
+  const fileName = pathParts[pathParts.length - 1];
+  const dotIndex = fileName.lastIndexOf('.');
+  if (dotIndex === -1) return false;
+  const ext = fileName.slice(dotIndex).toLowerCase();
+  if (!ALLOWED_EXTENSIONS.has(ext)) return false;
+  if (file.size > MAX_FILE_SIZE) return false;
+  return true;
+}
 
 function resetSelection() {
   selectedFile = null;
@@ -379,6 +414,8 @@ tabFolder.addEventListener('click', () => {
   resetSelection();
 });
 
+// No custom click handler on dropZone — the native <label for="..."> already
+// opens the right file picker without extra JS.
 
 fileInput.addEventListener('change', () => {
   if (fileInput.files.length > 0) {
@@ -390,10 +427,11 @@ fileInput.addEventListener('change', () => {
 
 folderInput.addEventListener('change', () => {
   if (folderInput.files.length > 0) {
-    selectedFolderFiles = Array.from(folderInput.files);
-    const topFolder = selectedFolderFiles[0].webkitRelativePath.split('/')[0];
-    fileNameEl.textContent = `${topFolder}/ (${selectedFolderFiles.length} files)`;
-    uploadBtn.disabled = false;
+    const allFiles = Array.from(folderInput.files);
+    selectedFolderFiles = allFiles.filter(shouldIncludeFile);
+    const topFolder = allFiles[0].webkitRelativePath.split('/')[0];
+    fileNameEl.textContent = `${topFolder}/ (${selectedFolderFiles.length} of ${allFiles.length} files — code/docs only)`;
+    uploadBtn.disabled = selectedFolderFiles.length === 0;
   }
 });
 
@@ -442,8 +480,9 @@ uploadBtn.addEventListener('click', async () => {
     }
 
     sessionId = data.session_id;
-    sessionInfo.textContent = `${data.files_ingested} files indexed · ${data.chunks_indexed} chunks`;
-    heroBlock.style.display = 'none';
+    sessionInfo.textContent = `Charted: ${data.files_ingested} files · ${data.chunks_indexed} chunks`;
+    heroEl.style.display = 'none';
+    howEl.style.display = 'none';
     uploadScreen.style.display = 'none';
     chatScreen.style.display = 'flex';
     input.focus();
@@ -461,7 +500,8 @@ newProjectBtn.addEventListener('click', () => {
   resetSelection();
   chat.innerHTML = '<div class="empty-state">Ask anything about the project you just uploaded — try "How does the login flow work?" or "Where is the database configured?"</div>';
   chatScreen.style.display = 'none';
-  heroBlock.style.display = 'block';
+  heroEl.style.display = 'grid';
+  howEl.style.display = 'block';
   uploadScreen.style.display = 'block';
 });
 
@@ -486,14 +526,14 @@ function addThinkingMessage() {
   div.className = 'msg bot thinking';
   div.innerHTML = `
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-      <circle cx="12" cy="12" r="10" fill="#2451DB"/>
+      <circle cx="12" cy="12" r="10" fill="#0D1613" stroke="#C9A24A" stroke-width="1"/>
       <g style="transform-origin:12px 12px; animation: spin 1.1s cubic-bezier(.65,0,.35,1) infinite;">
-        <path d="M12 5.5L14.5 12L12 10.5L9.5 12Z" fill="#F2A93B"/>
-        <path d="M12 18.5L9.5 12L12 13.5L14.5 12Z" fill="#fff" fill-opacity="0.85"/>
+        <path d="M12 5.5L14.5 12L12 10.5L9.5 12Z" fill="#C9A24A"/>
+        <path d="M12 18.5L9.5 12L12 13.5L14.5 12Z" fill="#F1EEE4" fill-opacity="0.75"/>
       </g>
-      <circle cx="12" cy="12" r="1.4" fill="#fff"/>
+      <circle cx="12" cy="12" r="1.4" fill="#F1EEE4"/>
     </svg>
-    <span>Thinking…</span>`;
+    <span>Taking a bearing…</span>`;
   chat.appendChild(div);
   chat.scrollTop = chat.scrollHeight;
   return div;
@@ -503,7 +543,7 @@ function addSources(sources) {
   if (!sources || sources.length === 0) return;
   const wrap = document.createElement('div');
   wrap.className = 'sources';
-  wrap.innerHTML = '<div class="sources-label">Sources</div>' +
+  wrap.innerHTML = '<div class="sources-label">Bearings</div>' +
     sources.map(s => `<div class="src">${s}</div>`).join('');
   chat.lastChild.appendChild(wrap);
 }
@@ -555,6 +595,10 @@ form.addEventListener('submit', async (e) => {
   }
 });
 </script>
+
+<style>
+@keyframes spin { 0% { transform: rotate(0deg); } 50% { transform: rotate(200deg); } 100% { transform: rotate(360deg); } }
+</style>
 
 </body>
 </html>
