@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="static/logo-banner.svg" width="320" alt="CodeCompass logo" />
+<img src="https://raw.githubusercontent.com/anjalinegi28/CodeCompass/main/static/logo-banner.svg" width="320" alt="CodeCompass logo" />
 
 **Upload any codebase. Ask questions in plain English. Get cited answers — file and line number included.**
 
