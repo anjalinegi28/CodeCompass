@@ -379,11 +379,6 @@ tabFolder.addEventListener('click', () => {
   resetSelection();
 });
 
-dropZone.addEventListener('click', (e) => {
-  e.preventDefault();
-  if (uploadMode === 'zip') fileInput.click();
-  else folderInput.click();
-});
 
 fileInput.addEventListener('change', () => {
   if (fileInput.files.length > 0) {
